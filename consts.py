@@ -1,8 +1,5 @@
-COURSE_DATA = [
-    {
-        "id": 1,
-        "name": "Shy Guy Falls",
-        "players": [
+PLAYER_DATA = {
+    1: [
             {
                 "name": "Player 1 ",
                 "country": "co",
@@ -34,19 +31,7 @@ COURSE_DATA = [
                 ]
             }
         ],
-        "colors": [
-            {
-                "header": "#ff8e43",
-                "rowDark": "#fdba74",
-                "rowLight": "#fed7aa",
-                "rowHover": "#77e269"
-            }
-        ]
-    },
-    {
-        "id": 2,
-        "name": "Neo Bowser City",
-        "players": [
+    2: [
             {
                 "name": "Player 3 ",
                 "country": "es",
@@ -77,14 +62,5 @@ COURSE_DATA = [
                     {"order": 3, "time": "33.423"}
                 ]
             }
-        ],
-        "colors": [
-            {
-                "header": "#43c1ff",
-                "rowDark": "#74fdf7",
-                "rowLight": "#cefdff",
-                "rowHover": "#e3719a"
-            }
         ]
-    }
-]
+}
