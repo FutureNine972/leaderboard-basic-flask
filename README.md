@@ -9,45 +9,38 @@ This was completed using Python Flask and PostgreSQL
 
 Function:
 
-* Receives a GET request from the Vue-JS frontend
+* Receives a GET request and responds with course info
+    * Connects to the course database to retrieve the ID and name
+* Receives a POST request and creates new course info
+    * Also responds to the POST request with that newly created info JSONified
 
-Responds by:
-
-* Connecting to the course database to retrieve the ID and name
-* Filling out the rest of the Mario Kart course information (players, country codes, times) from `consts.py` (Will eliminate all hard-coding soon !!!)
-
-I wouldn't recommend running this. Definitely not on its own. You can place this repo in a parent folder along with the [frontend](https://github.com/FutureNine972/leaderboard-basic-vue) repo.
+I wouldn't recommend running this. Definitely not on its own. You can place this repo in a parent folder along with the [frontend](https://github.com/FutureNine972/leaderboard-basic-vue) repo. You will also need to get PostgreSQL and set that up with the schema, and most importantly make adjustments to host information.
 
 ###### Flask - Response
 
 ```python
-@app.route("/courses", methods=["GET"])
-def get_courses():
-    raw_courses = fetch_courses()
-    courses = project_courses(raw_courses)
-    return jsonify(courses)
+@app.route("/courses", methods=["POST"])
+def create_course():
+    body = request.get_json()
 
-def fetch_courses():
+    new_course = _create_course(
+        body["name"],
+        body["lapCount"]
+    )
+
+    return project_course(new_course), 201
+
+def _create_course(name, _lap_count):
     with psycopg.connect(DATABASE_URL) as conn:
         with conn.cursor() as cur:
             cur.execute(r"""
-                SELECT
-                    id,
-                    name
-                FROM courses
-                ORDER BY name ASC
-                """
+                    INSERT INTO courses
+                    (name)
+                    VALUES
+                    (%s)
+                    RETURNING id, name
+                """,
+                (name,)
             )
-
-            return cur.fetchall()
-
-def project_courses(raw_courses):
-    return [
-        {
-            'id': c_id,
-            'name': c_name,
-            'players': PLAYER_DATA.get(c_id, [])
-        }
-        for c_id, c_name in raw_courses
-    ]
+            return cur.fetchone()
 ```
