@@ -8,6 +8,22 @@ app = Flask(__name__)
 CORS(app)
 DATABASE_URL = 'postgresql://postgres:postgress@localhost:5432/postgres'
 
+@app.route("/courses/<int:course_id>/", methods=["PATCH"])
+def update_course(course_id):
+    body = request.get_json()
+
+    saved_course = _save_course(
+        course_id,
+        body["name"],
+        body.get("lapCount")
+    )
+    return project_course(saved_course), 200
+
+@app.route("/courses/<int:course_id>/", methods=["DELETE"])
+def delete_course(course_id):
+    deleted_course = _delete_course(course_id)
+    return {}, 200
+
 @app.route("/courses", methods=["GET"])
 def get_courses():
     raw_courses = fetch_courses()
@@ -38,6 +54,29 @@ def _create_course(name, _lap_count):
                 (name,)
             )
             return cur.fetchone()
+
+def _save_course(course_id, name, _lap_count):
+    with psycopg.connect(DATABASE_URL) as conn:
+        with conn.cursor() as cur:
+            cur.execute(r"""
+                    UPDATE courses
+                    SET name = %s
+                    where id = %s
+                    RETURNING id, name
+                """,
+                (name, course_id)
+            )
+            return cur.fetchone()
+
+def _delete_course(course_id):
+    with psycopg.connect(DATABASE_URL) as conn:
+        with conn.cursor() as cur:
+            cur.execute(r"""
+                    DELETE FROM courses
+                    WHERE id = %s
+                """,
+                (course_id,)
+            )
 
 def fetch_courses():
     with psycopg.connect(DATABASE_URL) as conn:

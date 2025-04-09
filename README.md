@@ -13,34 +13,49 @@ Function:
     * Connects to the course database to retrieve the ID and name
 * Receives a POST request and creates new course info
     * Also responds to the POST request with that newly created info JSONified
+* Receives PATCH and DELETE requests and does that job accordingly
+    * In a PATCH response, course information will be modified once you press the save button in the editor.
 
 I wouldn't recommend running this. Definitely not on its own. You can place this repo in a parent folder along with the [frontend](https://github.com/FutureNine972/leaderboard-basic-vue) repo. You will also need to get PostgreSQL and set that up with the schema, and most importantly make adjustments to host information.
 
 ###### Flask - Response
 
 ```python
-@app.route("/courses", methods=["POST"])
-def create_course():
+@app.route("/courses/<int:course_id>/", methods=["PATCH"])
+def update_course(course_id):
     body = request.get_json()
 
-    new_course = _create_course(
+    saved_course = _save_course(
+        course_id,
         body["name"],
-        body["lapCount"]
+        body.get("lapCount")
     )
+    return project_course(saved_course), 200
 
-    return project_course(new_course), 201
+@app.route("/courses/<int:course_id>/", methods=["DELETE"])
+def delete_course(course_id):
+    deleted_course = _delete_course(course_id)
+    return {}, 200
 
-def _create_course(name, _lap_count):
+def _save_course(course_id, name, _lap_count):
     with psycopg.connect(DATABASE_URL) as conn:
         with conn.cursor() as cur:
             cur.execute(r"""
-                    INSERT INTO courses
-                    (name)
-                    VALUES
-                    (%s)
+                    UPDATE courses
+                    SET name = %s
+                    where id = %s
                     RETURNING id, name
                 """,
-                (name,)
+                (name, course_id)
             )
             return cur.fetchone()
-```
+
+def _delete_course(course_id):
+    with psycopg.connect(DATABASE_URL) as conn:
+        with conn.cursor() as cur:
+            cur.execute(r"""
+                    DELETE FROM courses
+                    WHERE id = %s
+                """,
+                (course_id,)
+            )
