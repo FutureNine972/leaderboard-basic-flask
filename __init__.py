@@ -2,11 +2,16 @@ from flask import Flask, request
 from flask_cors import CORS
 import psycopg
 from .consts import PLAYER_DATA
+import os
 
 app = Flask(__name__)
 
 CORS(app)
-DATABASE_URL = 'postgresql://postgres:postgress@localhost:5432/postgres'
+# DATABASE_URL = 'postgresql://postgres:postgress@localhost:5432/postgres'
+DATABASE_URL = os.getenv(
+    'DATABASE_URL',
+    'postgresql://postgres:postgress@localhost:5432/postgres'
+)
 
 @app.route("/courses/<int:course_id>/", methods=["PATCH"])
 def update_course(course_id):
